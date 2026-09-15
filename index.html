@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#150d2b">
+  <title>A Birthday Adventure 🌷</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Símbolos SVG reutilizables -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="tulip" viewBox="0 0 60 120">
+        <path d="M30 52 C29 75 31 95 30 120" stroke="#3f9a5e" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M30 100 C14 94 6 78 8 60 C20 70 27 82 30 92 Z" fill="#56b878"/>
+        <path d="M30 108 C46 100 54 86 52 70 C42 80 34 92 30 100 Z" fill="#4aa86b"/>
+        <path d="M13 20 C11 44 18 56 30 56 C42 56 49 44 47 20 L39 30 L30 12 L21 30 Z" fill="currentColor"/>
+        <path d="M30 12 L22 32 C24 46 27 52 30 54 C33 52 36 46 38 32 Z" fill="#fff" opacity=".22"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- Fondos por escena -->
+  <div id="bgs" aria-hidden="true">
+    <div class="bg bg-intro" data-bg="intro"></div>
+    <div class="bg bg-music" data-bg="music"></div>
+    <div class="bg bg-garden" data-bg="garden"></div>
+    <div class="bg bg-rolls" data-bg="rolls"></div>
+    <div class="bg bg-dino" data-bg="dino"></div>
+    <div class="bg bg-letter" data-bg="letter"></div>
+    <div class="bg bg-gift" data-bg="gift"></div>
+  </div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- HUD -->
+  <header id="hud" hidden>
+    <div class="hud-dots">
+      <span data-step="music">🎵</span>
+      <span data-step="garden">🌷</span>
+      <span data-step="rolls">☁️</span>
+      <span data-step="dino">🦖</span>
+      <span data-step="letter">💌</span>
+      <span data-step="gift">🎁</span>
+    </div>
+    <button id="muteBtn" aria-label="Silenciar sonido">🔊</button>
+  </header>
+
+  <main>
+    <!-- INICIO -->
+    <section class="scene" id="scene-intro">
+      <div class="intro-content">
+        <p class="kicker">A BIRTHDAY ADVENTURE</p>
+        <h1 class="hey">Hey, <span class="js-name"></span>...</h1>
+        <p class="intro-sub">Tengo algo preparado para ti. 🌷</p>
+        <div class="intro-actions">
+          <button class="btn btn-primary btn-pulse" id="startBtn">COMENZAR</button>
+          <button class="btn btn-ghost" id="restartBtn" hidden>Empezar de nuevo</button>
+        </div>
+      </div>
+      <div class="tulip-row" id="tulipRow" aria-hidden="true"></div>
+    </section>
+
+    <!-- NIVEL 1 · MÚSICA -->
+    <section class="scene" id="scene-music">
+      <div class="player" id="player">
+        <p class="eyebrow">🎧 Now playing for <span class="js-name"></span></p>
+        <div class="vinyl-wrap">
+          <div class="vinyl"><div class="vinyl-label"><svg><use href="#tulip"/></svg></div></div>
+          <div class="tonearm"></div>
+        </div>
+        <h2 class="track-title">This is your day</h2>
+        <p class="track-sub" id="trackSub"></p>
+        <div class="eq" id="eq" aria-hidden="true"></div>
+        <div class="progress"><div class="progress-fill" id="musicProgress"></div></div>
+        <div class="times"><span id="tNow">0:00</span><span id="tTotal">0:08</span></div>
+        <button class="play-btn" id="playBtn" aria-label="Play"><span class="play-icon"></span></button>
+        <details class="playlist">
+          <summary>Playlist · Olivia Rodrigo 💜</summary>
+          <ol id="songList"></ol>
+          <a class="btn btn-ghost btn-small" id="playlistLink" target="_blank" rel="noopener">Abrir en Spotify ↗</a>
+        </details>
+        <button class="btn btn-primary" id="musicNext" hidden>Siguiente capítulo →</button>
+      </div>
+    </section>
+
+    <!-- NIVEL 2 · JARDÍN -->
+    <section class="scene" id="scene-garden">
+      <div class="scene-top">
+        <h2 class="scene-title">The Tulip Garden</h2>
+        <p class="scene-text">Hay algo escondido entre las flores... 🌷</p>
+        <div class="pill" id="gardenPill">✨ <span id="gardenCount">0</span>/3</div>
+      </div>
+      <div class="field" id="field"></div>
+      <p class="hint">Toca los tulipanes</p>
+    </section>
+
+    <!-- NIVEL 3 · CINNAMOROLL -->
+    <section class="scene" id="scene-rolls">
+      <div class="mission">
+        <span class="pixel">MISSION</span>
+        <p>Collect 5 Cinnamorolls ☁️</p>
+        <div class="roll-meter" id="rollMeter"></div>
+      </div>
+      <div class="arena" id="arena">
+        <div class="arena-start" id="rollsStart">
+          <div class="big-roll" id="bigRoll"></div>
+          <p class="arena-text">Atrápalo antes de que se vaya volando entre las nubes</p>
+          <button class="btn btn-dark" id="rollsGo">¡VAMOS!</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- NIVEL 4 · DINOSAURIOS -->
+    <section class="scene" id="scene-dino">
+      <div class="warning" id="dinoWarning">
+        <div class="warn-stripe"></div>
+        <p class="pixel warn-title blink">🦖 WARNING</p>
+        <p>Se detectaron criaturas prehistóricas.</p>
+        <p><strong>Encuéntralas antes de continuar.</strong></p>
+        <button class="btn btn-warn" id="dinoGo">INICIAR BÚSQUEDA</button>
+        <div class="warn-stripe"></div>
+      </div>
+      <div class="forest" id="forest" hidden>
+        <div class="pill pill-dark">🦖 <span id="dinoCount">0</span>/5 encontrados</div>
+        <div class="forest-stage" id="forestStage"></div>
+        <p class="hint">Revisa los arbustos...</p>
+      </div>
+      <div class="big-dino-layer" id="bigDino" hidden>
+        <div class="walker" id="walker">
+          <div class="bubble">RAWR!</div>
+          <div id="walkerSvg"></div>
+        </div>
+        <div class="translation" id="translation">
+          <p class="t-small">Traducción:</p>
+          <p class="t-big">Feliz cumpleaños. 🌷</p>
+          <button class="btn btn-primary" id="dinoNext">Continuar →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINAL · CARTA -->
+    <section class="scene scroll" id="scene-letter">
+      <h2 class="made-it">You made it. 💜</h2>
+      <button class="envelope" id="envelope" aria-label="Abrir la carta">
+        <span class="env-back"></span>
+        <span class="env-letter"></span>
+        <span class="env-front"></span>
+        <span class="env-flap"></span>
+        <span class="seal">💜</span>
+      </button>
+      <p class="hint" id="envHint">Toca el sobre</p>
+      <article class="letter" id="letter" hidden></article>
+      <div class="gallery-wrap" id="gallery" hidden>
+        <h3>Algunos de nuestros momentos 📸</h3>
+        <div class="gallery" id="galleryTrack"></div>
+        <p class="hint">desliza →</p>
+      </div>
+      <div class="one-last" id="oneLast" hidden>
+        <p>One last thing...</p>
+        <button class="btn btn-primary btn-pulse" id="giftBtn">ABRIR REGALO 🎁</button>
+      </div>
+    </section>
+
+    <!-- REGALO -->
+    <section class="scene" id="scene-gift">
+      <p class="gift-kicker" id="giftKicker">One last thing...</p>
+      <button class="gift-box" id="giftBox" aria-label="Abrir regalo">
+        <span class="box"></span>
+        <span class="lid"><span class="bow"></span></span>
+      </button>
+      <p class="hint" id="giftHint">Toca la caja</p>
+      <div class="gift-card" id="giftCard" hidden></div>
+    </section>
+  </main>
+
+  <!-- Tarjeta de capítulo -->
+  <div id="titleCard" aria-live="polite">
+    <div class="tc-inner">
+      <p class="tc-kicker pixel"></p>
+      <p class="tc-title"></p>
+    </div>
+  </div>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>
