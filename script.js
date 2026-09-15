@@ -424,6 +424,7 @@ function goTo(name) {
 function updateHud() {
   const idx = ORDER.indexOf(current);
   $('#hud').hidden = current === 'intro';
+  $('#hud').classList.remove('tucked');
   $$('.hud-dots span').forEach(s => {
     const i = ORDER.indexOf(s.dataset.step);
     s.classList.toggle('done', i < idx);
@@ -702,7 +703,7 @@ scenes.dino = () => {
   const stage = $('#forestStage');
   stage.innerHTML = '';
   $('#dinoCount').textContent = '0';
-  const spots = [[24, 12], [74, 14], [48, 32], [18, 50], [80, 50], [50, 68], [20, 86], [76, 88]];
+  const spots = [[24, 6], [74, 8], [48, 32], [18, 55], [80, 55], [50, 78], [20, 98], [76, 100]];
   const dinoSpots = new Set(shuffle([...spots.keys()]).slice(0, 5));
   const colors = shuffle(['#6fcf7f', '#b18cff', '#ff9cc6', '#5fd3c6', '#ffc75f']);
   let found = 0, c = 0;
@@ -712,7 +713,8 @@ scenes.dino = () => {
     s.className = 'spot';
     s.setAttribute('aria-label', 'Arbusto');
     s.style.left = x + '%';
-    s.style.top = `calc(${y}% - ${(y * 1.2).toFixed(0)}px)`;
+    // reparte los arbustos en toda la altura sin que el último se salga
+    s.style.top = `calc(${y}% - clamp(104px, 32vw, 150px) * ${(0.8 * y / 100).toFixed(3)})`;
     const has = dinoSpots.has(i);
     if (has) {
       s.classList.add('has-dino');
@@ -774,14 +776,7 @@ function setupLetter() {
     }
   });
 
-  const track = $('#galleryTrack');
-  const doodles = ['💜', '🌷', '✨', '🦖', '☁️', '🎵'];
-  track.innerHTML = CONFIG.gallery.map((p, i) => polaroidHTML(p, doodles[i % doodles.length], 0)).join('');
-  $$('.polaroid', track).forEach((el, i) => {
-    el.removeAttribute('style');
-    $('img', el).loading = 'lazy';
-    el.addEventListener('click', () => openModal({ body: polaroidHTML(CONFIG.gallery[i], doodles[i % doodles.length], rand(-3, 3)), btn: 'Cerrar' }));
-  });
+  setupGallery();
 
   $('#envelope').addEventListener('click', () => {
     const env = $('#envelope');
@@ -802,8 +797,138 @@ function setupLetter() {
       later(() => { $('#gallery').hidden = false; $('#oneLast').hidden = false; }, (paras.length + 1) * 850 + 900);
     }, 1100);
   });
-  $('#giftBtn').addEventListener('click', () => show('gift'));
+  $('#giftBtn').addEventListener('click', () => { $('#hud').classList.remove('tucked'); show('gift'); });
+  // al bajar por la carta, esconder los iconos del HUD para que no tapen el texto
+  const letterScene = $('#scene-letter');
+  letterScene.addEventListener('scroll', () => {
+    $('#hud').classList.toggle('tucked', letterScene.scrollTop > 40);
+  }, { passive: true });
 }
+/* ---------- Galería (carrusel + visor) ---------- */
+const DOODLES = ['💜', '🌷', '✨', '🦖', '☁️', '🎵'];
+let galleryGo = () => {};
+
+function setupGallery() {
+  const photos = CONFIG.gallery;
+  const n = photos.length;
+  const track = $('#galleryTrack'), thumbs = $('#galThumbs');
+  track.innerHTML = photos.map((p, i) =>
+    `<figure class="polaroid slide" data-i="${i}"><img src="${src(p)}" alt="Foto ${i + 1}" loading="lazy" draggable="false"><figcaption>${DOODLES[i % DOODLES.length]}</figcaption></figure>`).join('');
+  thumbs.innerHTML = photos.map((p, i) =>
+    `<button class="thumb" data-i="${i}" aria-label="Ver foto ${i + 1}"><img src="${src(p)}" alt="" loading="lazy" draggable="false"></button>`).join('');
+  $('#galTotal').textContent = n;
+
+  const slides = $$('.slide', track), thumbBtns = $$('.thumb', thumbs);
+  let idx = -1;
+
+  const center = (container, el) => el.offsetLeft - (container.clientWidth - el.offsetWidth) / 2;
+  galleryGo = (i, smooth = true) => {
+    i = Math.max(0, Math.min(n - 1, i));
+    track.scrollTo({ left: center(track, slides[i]), behavior: smooth && !reducedMotion ? 'smooth' : 'auto' });
+  };
+  const setActive = i => {
+    if (i === idx) return;
+    idx = i;
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    thumbBtns.forEach((t, k) => t.classList.toggle('active', k === i));
+    $('#galIndex').textContent = i + 1;
+    $('#galPrev').disabled = i === 0;
+    $('#galNext').disabled = i === n - 1;
+    thumbs.scrollTo({ left: center(thumbs, thumbBtns[i]), behavior: 'smooth' });
+  };
+  let ticking = false;
+  track.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const mid = track.scrollLeft + track.clientWidth / 2;
+      let best = 0, bestD = Infinity;
+      slides.forEach((s, k) => {
+        const d = Math.abs(s.offsetLeft + s.offsetWidth / 2 - mid);
+        if (d < bestD) { bestD = d; best = k; }
+      });
+      setActive(best);
+    });
+  }, { passive: true });
+
+  $('#galPrev').addEventListener('click', () => galleryGo(idx - 1));
+  $('#galNext').addEventListener('click', () => galleryGo(idx + 1));
+  thumbBtns.forEach((t, k) => t.addEventListener('click', () => galleryGo(k)));
+  slides.forEach((s, k) => s.addEventListener('click', () => (k === idx ? Lightbox.open(k) : galleryGo(k))));
+  setActive(0);
+  Lightbox.init();
+}
+
+const Lightbox = {
+  i: 0,
+  init() {
+    const lb = $('#lightbox'), stage = $('#lbStage'), img = $('#lbImg');
+    $('#lbClose').addEventListener('click', () => this.close());
+    $('#lbPrev').addEventListener('click', () => this.go(-1));
+    $('#lbNext').addEventListener('click', () => this.go(1));
+    // tocar fuera de la foto cierra
+    stage.addEventListener('click', e => { if (e.target === stage) this.close(); });
+    document.addEventListener('keydown', e => {
+      if (lb.hidden) return;
+      if (e.key === 'Escape') this.close();
+      if (e.key === 'ArrowLeft') this.go(-1);
+      if (e.key === 'ArrowRight') this.go(1);
+    });
+    // deslizar con el dedo
+    let x0 = null, dx = 0;
+    img.addEventListener('pointerdown', e => { x0 = e.clientX; dx = 0; img.classList.add('dragging'); try { img.setPointerCapture(e.pointerId); } catch {} });
+    img.addEventListener('pointermove', e => {
+      if (x0 === null) return;
+      dx = e.clientX - x0;
+      img.style.transform = `translateX(${dx}px) rotate(${dx / 40}deg)`;
+    });
+    const end = () => {
+      if (x0 === null) return;
+      x0 = null;
+      img.classList.remove('dragging');
+      if (Math.abs(dx) > 60) this.go(dx < 0 ? 1 : -1);
+      else img.style.transform = '';
+    };
+    img.addEventListener('pointerup', end);
+    img.addEventListener('pointercancel', end);
+  },
+  open(i) {
+    const lb = $('#lightbox');
+    lb.hidden = false;
+    void lb.offsetWidth;
+    lb.classList.add('show');
+    this.show(i, 0);
+    Sound.pop();
+  },
+  close() {
+    const lb = $('#lightbox');
+    lb.classList.remove('show');
+    setTimeout(() => { lb.hidden = true; }, 250);
+    galleryGo(this.i, false);
+  },
+  go(d) {
+    const n = CONFIG.gallery.length;
+    this.show((this.i + d + n) % n, d);
+  },
+  show(i, dir) {
+    const photos = CONFIG.gallery, n = photos.length, img = $('#lbImg');
+    this.i = i;
+    img.style.transition = 'none';
+    img.style.opacity = '0';
+    img.style.transform = `translateX(${dir * 70}px)`;
+    img.src = src(photos[i]);
+    $('#lbCaption').textContent = DOODLES[i % DOODLES.length];
+    $('#lbCount').textContent = `${i + 1} / ${n}`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      img.style.transition = '';
+      img.style.opacity = '';
+      img.style.transform = '';
+    }));
+    preload([photos[(i + 1) % n], photos[(i - 1 + n) % n]]);
+  },
+};
+
 scenes.letter = () => {
   preload(CONFIG.gallery.slice(0, 3));
   const scene = $('#scene-letter');
@@ -841,6 +966,8 @@ function setupGift() {
         <p class="gc-bday">${esc(g.greeting)}</p>
         <button class="btn btn-ghost btn-small" id="replayBtn">↺ Jugar otra vez</button>`;
       card.hidden = false;
+      const divider = $('.gc-divider', card);
+      card.style.setProperty('--notch', `${divider.offsetTop - 13}px`);
       $('#replayBtn').addEventListener('click', () => { store.clear(); location.reload(); });
       Confetti.burst(160, true);
     }, 850);

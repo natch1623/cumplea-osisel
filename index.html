@@ -157,8 +157,14 @@
       <article class="letter" id="letter" hidden></article>
       <div class="gallery-wrap" id="gallery" hidden>
         <h3>Algunos de nuestros momentos 📸</h3>
-        <div class="gallery" id="galleryTrack"></div>
-        <p class="hint">desliza →</p>
+        <p class="gallery-sub">Desliza o toca una foto para verla completa</p>
+        <div class="carousel">
+          <button class="car-arrow prev" id="galPrev" aria-label="Foto anterior">‹</button>
+          <div class="gallery" id="galleryTrack"></div>
+          <button class="car-arrow next" id="galNext" aria-label="Foto siguiente">›</button>
+        </div>
+        <p class="gal-counter pixel"><span id="galIndex">1</span> / <span id="galTotal">1</span></p>
+        <div class="thumbs" id="galThumbs"></div>
       </div>
       <div class="one-last" id="oneLast" hidden>
         <p>One last thing...</p>
@@ -183,6 +189,18 @@
     <div class="tc-inner">
       <p class="tc-kicker pixel"></p>
       <p class="tc-title"></p>
+    </div>
+  </div>
+
+  <!-- Visor de fotos a pantalla completa -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Visor de fotos" hidden>
+    <button class="lb-close" id="lbClose" aria-label="Cerrar">✕</button>
+    <div class="lb-stage" id="lbStage"><img class="lb-img" id="lbImg" alt="" draggable="false"></div>
+    <button class="lb-arrow prev" id="lbPrev" aria-label="Foto anterior">‹</button>
+    <button class="lb-arrow next" id="lbNext" aria-label="Foto siguiente">›</button>
+    <div class="lb-bottom">
+      <p class="lb-caption" id="lbCaption"></p>
+      <p class="lb-count pixel" id="lbCount"></p>
     </div>
   </div>
 
