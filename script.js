@@ -23,15 +23,15 @@ const CONFIG = {
   // Nivel 2 — el recuerdo escondido entre los tulipanes
   firstMemory: {
     photo: 'fotos/primer recuerdo.jpeg',
-    caption: 'Cine, palomitas... y el comienzo de todo 🎬',
+    caption: 'Cine, palomitas... donde todo empezó 🎞️',
   },
 
   // Nivel 3 — un mensaje (y foto) por cada Cinnamoroll atrapado
   rolls: [
-    { text: 'Eres increíble.', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.46 PM.jpeg' },
+    { text: 'La princesa de mi vida ❤️', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.46 PM.jpeg' },
     { text: 'Nunca cambies esa sonrisa.', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.47 PM (1).jpeg' },
-    { text: 'Te mereces cosas bonitas.', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.47 PM.jpeg' },
-    { text: 'Hoy es tu día.', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.48 PM.jpeg' },
+    { text: 'Quien le da color a mis días 🍀', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.47 PM.jpeg' },
+    { text: 'Mi rayito de alegría 🤍', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.48 PM.jpeg' },
     { text: 'Y todavía falta una sorpresa...', photo: 'fotos/WhatsApp Image 2026-09-14 at 8.16.48 PM (1).jpeg' },
   ],
 
@@ -53,9 +53,9 @@ const CONFIG = {
   letter: [
     'Hay personas que hacen que los días normales se sientan un poquito más especiales.',
     'Y hoy quería hacer algo diferente para ti.',
-    'Así que junté algunas de las cosas que sé que te gustan: flores, música, Cinnamoroll y, por supuesto, dinosaurios. 🌷🎵☁️🦖',
+    'Así que junté algunas de las cosas que sé que te gustan: flores, música, Cinnamoroll y, por supuesto, mi toque personal: "Dinosaurios" jajaja 🌷🎵☁️🦖',
     'Espero que este pequeño lugar que hice para ti te saque aunque sea una sonrisa.',
-    '*Feliz cumpleaños, {name}. 💜',
+    '*Feliz cumpleaños mi tesoro 🎂',
     'Que este nuevo año de tu vida esté lleno de momentos bonitos, personas que te quieran mucho y muchas razones para sonreír.',
     'Y recuerda...\nsi algún día todo se pone difícil,\nsiempre habrá un dinosaurio dispuesto a defenderte. 🦖',
   ],
@@ -79,6 +79,7 @@ const CONFIG = {
     title: 'Una cita conmigo ☁️',
     text: 'Comida rica, un postre bonito y el plan que tú elijas. Todo el día es tuyo.',
     detail: 'Válido: cuando tú quieras 💜',
+    greeting: 'Feliz cumpleaños, Princesa ❤️',
     photo: '',                   // opcional, ej. 'fotos/regalo.jpeg'
   },
 };
@@ -837,7 +838,7 @@ function setupGift() {
         ${g.photo ? `<img class="gc-photo" src="${src(g.photo)}" alt="">` : ''}
         <p class="gc-text">${esc(g.text)}</p>
         <p class="gc-detail">${esc(g.detail)}</p>
-        <p class="gc-bday">Feliz cumpleaños, ${esc(CONFIG.name)} 💜</p>
+        <p class="gc-bday">${esc(g.greeting)}</p>
         <button class="btn btn-ghost btn-small" id="replayBtn">↺ Jugar otra vez</button>`;
       card.hidden = false;
       $('#replayBtn').addEventListener('click', () => { store.clear(); location.reload(); });
